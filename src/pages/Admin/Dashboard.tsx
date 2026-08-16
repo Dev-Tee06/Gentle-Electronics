@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { FiBox, FiList, FiDollarSign, FiShoppingCart, FiUsers } from 'react-icons/fi'
+import { FiBox, FiDollarSign, FiShoppingCart, FiUsers } from 'react-icons/fi'
 import { supabase } from '../../services/supabase/client'
 import { formatCurrency } from '../../utils/whatsapp'
 
