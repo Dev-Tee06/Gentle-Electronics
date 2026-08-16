@@ -13,6 +13,10 @@ const Products: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
   
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterCategory, setFilterCategory] = useState('')
+  const [filterStatus, setFilterStatus] = useState('all')
+  
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   
@@ -137,17 +141,53 @@ const Products: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold text-charcoal">Products</h1>
         {!isFormOpen && (
           <button
             onClick={() => setIsFormOpen(true)}
-            className="flex items-center px-4 py-2 bg-orange text-white rounded-md hover:bg-orange-dark transition-colors"
+            className="flex items-center px-4 py-2 bg-orange text-white rounded-md hover:bg-orange-dark transition-colors whitespace-nowrap"
           >
             <FiPlus className="mr-2" /> Add Product
           </button>
         )}
       </div>
+
+      {!isFormOpen && (
+        <div className="bg-white p-4 rounded-lg border border-border-gray shadow-sm mb-6 flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-border-gray rounded-md"
+            />
+          </div>
+          <div className="w-full md:w-48">
+            <select 
+              value={filterCategory} 
+              onChange={e => setFilterCategory(e.target.value)}
+              className="w-full px-3 py-2 border border-border-gray rounded-md bg-white"
+            >
+              <option value="">All Categories</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div className="w-full md:w-48">
+            <select 
+              value={filterStatus} 
+              onChange={e => setFilterStatus(e.target.value)}
+              className="w-full px-3 py-2 border border-border-gray rounded-md bg-white"
+            >
+              <option value="all">All Statuses</option>
+              <option value="available">Available</option>
+              <option value="out_of_stock">Out of Stock</option>
+            </select>
+          </div>
+        </div>
+      )}
+
 
       {isFormOpen && (
         <div className="bg-white p-6 rounded-lg border border-border-gray shadow-sm mb-8">
@@ -301,7 +341,19 @@ const Products: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                products.map((product) => {
+                products
+                  .filter(product => {
+                    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    const matchesCategory = filterCategory ? product.category_id === filterCategory : true
+                    const matchesStatus = filterStatus === 'all' 
+                      ? true 
+                      : filterStatus === 'available' 
+                        ? product.is_available 
+                        : !product.is_available
+                    
+                    return matchesSearch && matchesCategory && matchesStatus
+                  })
+                  .map((product) => {
                   const category = categories.find(c => c.id === product.category_id)
                   return (
                     <tr key={product.id} className="hover:bg-light-gray/50 transition-colors">

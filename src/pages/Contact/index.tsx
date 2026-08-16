@@ -1,9 +1,14 @@
 import React from 'react'
 import { FiPhone, FiMail, FiMapPin, FiClock } from 'react-icons/fi'
+import { SEO } from '../../components/SEO'
 
 const Contact: React.FC = () => {
   return (
     <div className="bg-light-gray min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <SEO 
+        title="Contact Us | Gentle Electronics"
+        description="Get in touch with Gentle Electronics for support, inquiries, or feedback."
+      />
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold text-charcoal mb-4">Contact Us</h1>

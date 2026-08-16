@@ -4,7 +4,8 @@ import { FiArrowRight, FiCheckCircle, FiHeadphones, FiShield } from 'react-icons
 import { supabase } from '../../services/supabase/client'
 import type { Database } from '../../types/supabase'
 import { getProductImage } from '../../utils/imageFallback'
-
+import { motion } from 'framer-motion'
+import { SEO } from '../../components/SEO'
 type Product = Database['public']['Tables']['products']['Row']
 type Category = Database['public']['Tables']['categories']['Row']
 
@@ -38,18 +39,27 @@ const Home: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      <SEO 
+        title="Gentle Electronics | Premium Electronics & Home Appliances"
+        description="Explore quality electronics carefully selected to bring reliable technology and modern convenience closer to you."
+      />
       {/* Premium Hero Section */}
       <section className="relative bg-light-gray overflow-hidden border-b border-border-gray">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 flex flex-col md:flex-row items-center relative z-10">
-          <div className="md:w-1/2 pr-0 md:pr-12 text-center md:text-left">
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="md:w-1/2 pr-0 md:pr-12 text-center md:text-left"
+          >
             <span className="inline-block py-1 px-3 rounded-full bg-orange/10 text-orange-dark text-sm font-semibold tracking-wider uppercase mb-6 border border-orange/20">
               Featured Collection
             </span>
             <h1 className="text-4xl md:text-6xl font-extrabold text-charcoal tracking-tight mb-6 leading-tight">
-              Power Up Your World With <span className="text-orange">Better Technology.</span>
+              Power Up Your Home With <span className="text-orange">Premium Electronics.</span>
             </h1>
             <p className="mt-4 text-lg md:text-xl text-secondary-charcoal max-w-2xl mx-auto md:mx-0 mb-10 leading-relaxed">
-              Explore smartphones, laptops, accessories, smart devices and more — carefully selected to bring quality technology closer to you.
+              Explore quality electronics carefully selected to bring reliable technology and modern convenience closer to you.
             </p>
             <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-4">
               <Link
@@ -66,15 +76,20 @@ const Home: React.FC = () => {
                 Explore Products
               </Link>
             </div>
-          </div>
-          <div className="md:w-1/2 mt-16 md:mt-0 relative">
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="md:w-1/2 mt-16 md:mt-0 relative"
+          >
             <div className="absolute inset-0 bg-orange/10 rounded-full blur-3xl filter"></div>
             <img 
-              src="https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=1000" 
+              src="https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&q=80&w=1000" 
               alt="Premium Electronics" 
               className="relative z-10 w-full h-auto object-cover rounded-2xl shadow-2xl border border-white"
             />
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -154,23 +169,29 @@ const Home: React.FC = () => {
                 const categoryProduct = products.find(p => p.category_id === category.id)
                 const imageSrc = category.image_url || categoryProduct?.image_url || getProductImage(category.id, null)
                 return (
-                  <Link 
-                    key={category.id} 
-                    to={`/shop?category=${category.slug}`}
-                    className="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-border-gray hover:border-orange/50 overflow-hidden flex flex-col transition-all duration-300 transform hover:-translate-y-1"
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
+                    key={category.id}
                   >
-                    <div className="h-56 bg-light-gray overflow-hidden relative">
-                      <img 
-                        src={imageSrc} 
-                        alt={category.name} 
-                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" 
-                      />
-                    </div>
-                    <div className="p-5 flex flex-col flex-grow bg-white border-t border-border-gray">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-charcoal group-hover:text-orange transition-colors">
-                          {category.name}
-                        </h3>
+                    <Link 
+                      to={`/shop?category=${category.slug}`}
+                      className="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-border-gray hover:border-orange/50 overflow-hidden flex flex-col transition-all duration-300 transform hover:-translate-y-1 block h-full"
+                    >
+                      <div className="h-56 bg-light-gray overflow-hidden relative">
+                        <img 
+                          src={imageSrc} 
+                          alt={category.name} 
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" 
+                        />
+                      </div>
+                      <div className="p-5 flex flex-col flex-grow bg-white border-t border-border-gray">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-bold text-charcoal group-hover:text-orange transition-colors">
+                            {category.name}
+                          </h3>
                         <FiArrowRight className="h-4 w-4 text-orange transform group-hover:translate-x-1 transition-transform" />
                       </div>
                       {category.description && (
@@ -178,8 +199,9 @@ const Home: React.FC = () => {
                           {category.description}
                         </p>
                       )}
-                    </div>
-                  </Link>
+                      </div>
+                    </Link>
+                  </motion.div>
                 )
               })
             ) : (

@@ -20,7 +20,6 @@ const Categories: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null)
   
   const [name, setName] = useState('')
-  const [slug, setSlug] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   
@@ -40,7 +39,6 @@ const Categories: React.FC = () => {
 
   const resetForm = () => {
     setName('')
-    setSlug('')
     setDescription('')
     setImageUrl('')
     setEditingId(null)
@@ -49,7 +47,6 @@ const Categories: React.FC = () => {
 
   const handleEdit = (category: Category) => {
     setName(category.name)
-    setSlug(category.slug)
     setDescription(category.description || '')
     setImageUrl(category.image_url || '')
     setEditingId(category.id)
@@ -101,7 +98,7 @@ const Categories: React.FC = () => {
     const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
     const categoryPayload = { 
       name, 
-      slug: slug || autoSlug, 
+      slug: autoSlug, 
       description,
       image_url: imageUrl || null
     }
@@ -142,10 +139,6 @@ const Categories: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-charcoal mb-1">Name *</label>
               <input required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 border border-border-gray rounded-md" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-charcoal mb-1">Slug (URL)</label>
-              <input type="text" value={slug} onChange={e => setSlug(e.target.value)} placeholder="Auto-generated if empty" className="w-full px-3 py-2 border border-border-gray rounded-md" />
             </div>
             <div>
               <label className="block text-sm font-medium text-charcoal mb-1">Description</label>

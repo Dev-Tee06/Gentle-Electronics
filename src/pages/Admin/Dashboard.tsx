@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { FiBox, FiList, FiDollarSign, FiShoppingCart } from 'react-icons/fi'
+import { FiBox, FiList, FiDollarSign, FiShoppingCart, FiUsers } from 'react-icons/fi'
 import { supabase } from '../../services/supabase/client'
 import { formatCurrency } from '../../utils/whatsapp'
 
@@ -11,17 +11,22 @@ const Dashboard: React.FC = () => {
     totalCategories: 0,
     totalSalesCount: 0,
     totalRevenue: 0,
+    totalCustomers: 0,
   })
+  const [recentProducts, setRecentProducts] = useState<any[]>([])
+  const [recentSales, setRecentSales] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true)
       
-      const [products, categories, sales] = await Promise.all([
+      const [products, categories, sales, recentP, recentS] = await Promise.all([
         supabase.from('products').select('id, is_available'),
         supabase.from('categories').select('id', { count: 'exact', head: true }),
-        supabase.from('sales').select('id, total_amount'),
+        supabase.from('sales').select('id, total_amount, customer_phone'),
+        supabase.from('products').select('id, name, price, created_at').order('created_at', { ascending: false }).limit(5),
+        supabase.from('sales').select('id, customer_name, total_amount, created_at').order('created_at', { ascending: false }).limit(5),
       ])
 
       const totalProducts = products.data?.length || 0
@@ -29,6 +34,12 @@ const Dashboard: React.FC = () => {
       
       const totalSalesCount = sales.data?.length || 0
       const totalRevenue = sales.data?.reduce((sum: number, sale: { id: string; total_amount: number }) => sum + Number(sale.total_amount), 0) || 0
+      
+      const uniquePhones = new Set(sales.data?.map(s => s.customer_phone).filter(Boolean))
+      const totalCustomers = uniquePhones.size
+
+      if (recentP.data) setRecentProducts(recentP.data)
+      if (recentS.data) setRecentSales(recentS.data)
 
       setStats({
         totalProducts,
@@ -37,6 +48,7 @@ const Dashboard: React.FC = () => {
         totalCategories: categories.count || 0,
         totalSalesCount,
         totalRevenue,
+        totalCustomers,
       })
 
       setIsLoading(false)
@@ -48,8 +60,8 @@ const Dashboard: React.FC = () => {
   const statCards = [
     { title: 'Total Revenue', value: formatCurrency(stats.totalRevenue), icon: FiDollarSign, color: 'bg-green-100 text-green-600' },
     { title: 'Confirmed Sales', value: stats.totalSalesCount.toString(), icon: FiShoppingCart, color: 'bg-blue-100 text-orange-dark' },
+    { title: 'Total Customers', value: stats.totalCustomers.toString(), icon: FiUsers, color: 'bg-indigo-100 text-indigo-600' },
     { title: 'Total Products', value: stats.totalProducts.toString(), icon: FiBox, color: 'bg-purple-100 text-purple-600' },
-    { title: 'Categories', value: stats.totalCategories.toString(), icon: FiList, color: 'bg-orange-100 text-orange-600' },
   ]
 
   return (
@@ -108,15 +120,63 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="bg-white p-6 rounded-lg border border-border-gray shadow-sm flex flex-col justify-center items-center text-center">
-           <div className="p-4 bg-light-gray rounded-full mb-4">
-             <FiDollarSign className="h-8 w-8 text-secondary-charcoal" />
-           </div>
-           <h3 className="text-lg font-bold text-charcoal mb-2">Ready for Sales</h3>
-           <p className="text-sm text-secondary-charcoal max-w-xs">
-             Your dashboard is ready. When customers checkout via WhatsApp and confirm payment, you can record sales in the Sales tab to track revenue.
-           </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white rounded-lg border border-border-gray shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border-gray flex justify-between items-center">
+            <h2 className="text-lg font-bold text-charcoal">Recent Sales</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-light-gray/50 text-secondary-charcoal text-xs uppercase tracking-wider border-b border-border-gray">
+                  <th className="px-6 py-3 font-medium">Customer</th>
+                  <th className="px-6 py-3 font-medium">Amount</th>
+                  <th className="px-6 py-3 font-medium">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-gray">
+                {recentSales.length > 0 ? recentSales.map(sale => (
+                  <tr key={sale.id} className="hover:bg-light-gray/50">
+                    <td className="px-6 py-3 font-medium text-charcoal text-sm">{sale.customer_name}</td>
+                    <td className="px-6 py-3 font-medium text-green-600 text-sm">{formatCurrency(sale.total_amount)}</td>
+                    <td className="px-6 py-3 text-secondary-charcoal text-sm">{new Date(sale.created_at).toLocaleDateString()}</td>
+                  </tr>
+                )) : (
+                  <tr><td colSpan={3} className="px-6 py-4 text-center text-secondary-charcoal text-sm">No recent sales</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border border-border-gray shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border-gray flex justify-between items-center">
+            <h2 className="text-lg font-bold text-charcoal">Recently Added Products</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-light-gray/50 text-secondary-charcoal text-xs uppercase tracking-wider border-b border-border-gray">
+                  <th className="px-6 py-3 font-medium">Product</th>
+                  <th className="px-6 py-3 font-medium">Price</th>
+                  <th className="px-6 py-3 font-medium">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-gray">
+                {recentProducts.length > 0 ? recentProducts.map(product => (
+                  <tr key={product.id} className="hover:bg-light-gray/50">
+                    <td className="px-6 py-3 font-medium text-charcoal text-sm">{product.name}</td>
+                    <td className="px-6 py-3 font-medium text-orange text-sm">{formatCurrency(product.price)}</td>
+                    <td className="px-6 py-3 text-secondary-charcoal text-sm">{new Date(product.created_at).toLocaleDateString()}</td>
+                  </tr>
+                )) : (
+                  <tr><td colSpan={3} className="px-6 py-4 text-center text-secondary-charcoal text-sm">No products found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
